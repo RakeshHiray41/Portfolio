@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, Phone, MapPin, Send, Check } from "lucide-react";
 import { CONTACT } from "../data/profile";
 
 const INFO_ITEMS = [
@@ -8,18 +8,46 @@ const INFO_ITEMS = [
   { icon: MapPin, value: CONTACT.location, href: null, bg: "bg-sage" },
 ];
 
+function encode(data) {
+  return Object.keys(data)
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+    .join("&");
+}
+
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (status !== "sent") return;
+    const timer = setTimeout(() => setStatus("idle"), 2000);
+    return () => clearTimeout(timer);
+  }, [status]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Portfolio enquiry from ${form.name || "a visitor"}`);
-    const body = encodeURIComponent(
-      `${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ""}`
-    );
-    window.location.href = `mailto:${CONTACT.email}?subject=${subject}&body=${body}`;
+    setStatus("sending");
+    try {
+      await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: encode({ "form-name": "contact", ...form }),
+      });
+      setStatus("sent");
+      setForm({ name: "", email: "", message: "" });
+    } catch {
+      // Netlify Forms isn't available (e.g. running locally with `npm run dev`,
+      // or deployed somewhere other than Netlify) — fall back to opening the
+      // visitor's email client with the message prefilled.
+      const subject = encodeURIComponent(`Portfolio enquiry from ${form.name || "a visitor"}`);
+      const body = encodeURIComponent(
+        `${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ""}`
+      );
+      window.location.href = `mailto:${CONTACT.email}?subject=${subject}&body=${body}`;
+      setStatus("idle");
+    }
   };
 
   return (
@@ -28,7 +56,8 @@ export default function Contact() {
       <div>
         <h1 className="font-display text-4xl sm:text-5xl leading-tight mb-5">Contact Us</h1>
         <p className="text-muted leading-relaxed max-w-[46ch] mb-10">
-         Have a project or opportunity in mind? Let’s connect. Send me a message and I’ll get back to you.
+          Have a role, a project, or just want to say hi? Reach me through any of these — or
+          send a message with the form and I'll get back to you.
         </p>
 
         <div className="flex flex-col gap-6">
@@ -54,45 +83,61 @@ export default function Contact() {
       </div>
 
       {/* right: form */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          name="name"
-          type="text"
-          required
-          value={form.name}
-          onChange={handleChange}
-          placeholder="Name"
-          className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors"
-        />
-        <input
-          name="email"
-          type="email"
-          required
-          value={form.email}
-          onChange={handleChange}
-          placeholder="Email"
-          className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors"
-        />
-        <textarea
-          name="message"
-          required
-          rows={5}
-          value={form.message}
-          onChange={handleChange}
-          placeholder="Message"
-          className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors resize-none"
-        />
-        <button
-          type="submit"
-          className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg py-4 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          style={{ background: "linear-gradient(90deg, #7C3AED, #EC4899)" }}
+      {status === "sent" ? (
+        <div className="flex flex-col items-center justify-center text-center gap-4 border border-line rounded-lg py-16 px-6">
+          <span className="flex items-center justify-center w-14 h-14 rounded-full bg-sage text-paper">
+            <Check size={24} />
+          </span>
+          <p className="font-display text-xl">Message sent.</p>
+          <p className="text-muted text-sm max-w-[36ch]">
+            Thanks for reaching out — I'll get back to you soon.
+          </p>
+        </div>
+      ) : (
+        <form
+          name="contact"
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4"
+          data-netlify="true"
         >
-          Submit <Send size={15} />
-        </button>
-        <p className="font-mono text-xs text-muted mt-1">
-          This opens your email client with the message ready to send — nothing is stored here.
-        </p>
-      </form>
+          <input type="hidden" name="form-name" value="contact" />
+          <input
+            name="name"
+            type="text"
+            required
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Name"
+            className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors"
+          />
+          <input
+            name="email"
+            type="email"
+            required
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Email"
+            className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors"
+          />
+          <textarea
+            name="message"
+            required
+            rows={5}
+            value={form.message}
+            onChange={handleChange}
+            placeholder="Message"
+            className="w-full bg-card border border-line rounded-lg px-5 py-4 text-sm focus:outline-none focus:border-blueprint transition-colors resize-none"
+          />
+          <button
+            type="submit"
+            disabled={status === "sending"}
+            className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg py-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            style={{ background: "linear-gradient(90deg, #7C3AED, #EC4899)" }}
+          >
+            {status === "sending" ? "Sending..." : "Submit"} <Send size={15} />
+          </button>
+        </form>
+      )}
     </div>
   );
 }
