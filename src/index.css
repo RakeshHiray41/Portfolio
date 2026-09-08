@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-paper: #FAF9F5;
+  --color-ink: #201E1B;
+  --color-muted: #6B6558;
+  --color-line: #DAD5C8;
+  --color-blueprint: #2C4A73;
+  --color-signal: #B8531F;
+  --color-card: #F1EEE5;
+  --color-sage: #4F7A5E;
+  --color-plum: #6B4C7A;
+  --color-teal: #2F6F6B;
+}
+
+.dark {
+  --color-paper: #1B1A18;
+  --color-ink: #F3F1EA;
+  --color-muted: #A39F91;
+  --color-line: #38352E;
+  --color-blueprint: #7FA3D6;
+  --color-signal: #E08A4F;
+  --color-card: #24221E;
+  --color-sage: #7FB08D;
+  --color-plum: #B08FC2;
+  --color-teal: #6FBAB5;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: "IBM Plex Sans", sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.rh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-signal);
+  display: inline-block;
+}
+
+.rh-hero-bg {
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--color-blueprint) 14%, transparent), transparent 55%),
+    radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--color-signal) 12%, transparent), transparent 50%);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-1,
+  .animate-rise-2,
+  .animate-rise-3 {
+    animation: none !important;
+  }
+}
