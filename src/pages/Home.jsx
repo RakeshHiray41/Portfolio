@@ -25,7 +25,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* left: text */}
           <div className="lg:col-span-7 order-2 lg:order-1">
-            <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>
+            <p className="text-sm mb-3" style={{ color: "" }}>
               {PROFILE.greeting}
             </p>
             <h1 className="text-2xl sm:text-3xl font-medium mb-2" style={{ color: "#F3F1EA" }}>

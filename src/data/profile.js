@@ -1,7 +1,7 @@
 export const PROFILE = {
   name: "Rakesh Sudhakar Hiray",
   initials: "RAKESH",
-  greeting: "Hi, I am",
+  greeting: "Hello, I am",
   role: "Software Engineer",
   roleLine: "Java · Spring Boot · Python · FastAPI · React",
   tagline:
